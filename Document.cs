@@ -35,7 +35,7 @@ namespace Computer_Test
             XSSFWorkbook workbookwrite = new XSSFWorkbook(File.Open(mappingPath, FileMode.Open));//打开映射表总表
             // {Name: /xl/worksheets/sheet3.xml - Content Type: application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml}
             XSSFSheet mappingTable = (XSSFSheet)workbookwrite.GetSheet("NB");
-            XSSFSheet testPlan = (XSSFSheet)WB.CreateSheet("testPlan");
+            XSSFSheet testPlan = (XSSFSheet)WB.GetSheet("TestPlan");
             int flag = 1; //保存文件名
 
             string modelName = "";
@@ -43,24 +43,7 @@ namespace Computer_Test
             string modelNameNext2 = "";
             int typeA = 0;
             int typeC = 0;
-            for (int i = 0;i<=mappingTable.LastRowNum;i++) // 97
-            {
-                IRow mappingRow = mappingTable.GetRow(i);
-                IRow decRow = mappingsheet.CreateRow(i);
-                IRow testRow = testPlan.CreateRow(i);
-                if (mappingRow == null)
-                    continue;  
-                for(int j = 0; j < 5; j++)
-                {
-                    if (mappingRow.GetCell(j) == null)
-                        continue;
-                    string s = mappingRow.GetCell(j).ToString();
-                   
-                    decRow.CreateCell(j, CellType.String).SetCellValue(s);
-                    testRow.CreateCell(j, CellType.String).SetCellValue(s);
 
-                }
-            }
 
 
             XSSFWorkbook machineMapping = new XSSFWorkbook(File.Open(machinePath, FileMode.Open));//打开機種映射表总表
@@ -76,7 +59,6 @@ namespace Computer_Test
 
             // int rowOffset = 0; // 行偏移量
 
-            // 遍历所有工作表
             // 遍历所有工作表
             foreach (ISheet sheet in machineMapping)
             {
@@ -187,7 +169,7 @@ namespace Computer_Test
             RemoveEmptyColumns(p_machineSheet);
 
             // 在前3行插入空行
-            InsertEmptyRows(testPlan, 2);
+            // InsertEmptyRows(testPlan, 2);
             // 原有的代码逻辑
             for (int i = 0; i <= testPlan.LastRowNum; i++)
             {
@@ -1188,41 +1170,7 @@ namespace Computer_Test
 
                 }
             }
-            // 插入新行
-            void InsertEmptyRows(ISheet sheet, int numberOfRows)
-            {
-                // 向下移动现有行
-                sheet.ShiftRows(0, sheet.LastRowNum, numberOfRows);
 
-                // 在顶部插入空行
-                for (int i = 0; i < numberOfRows; i++)
-                {
-                    IRow newRow = sheet.CreateRow(i);
-                }
-                IRow row0 = testPlan.CreateRow(0);
-                row0.CreateCell(0, CellType.String).SetCellValue("PCBA NPI機種測試test plan");
-               
-                // 设置单元格样式
-                ICellStyle style = testPlan.Workbook.CreateCellStyle();
-                style.FillForegroundColor = NPOI.HSSF.Util.HSSFColor.LightGreen.Index;
-                style.Alignment = NPOI.SS.UserModel.HorizontalAlignment.Center;
-                style.VerticalAlignment = VerticalAlignment.Center;
-                style.FillPattern = FillPattern.SolidForeground; // 设置填充模式为实心填充
-
-                row0.GetCell(0).CellStyle = style;
-
-                row0.HeightInPoints = 30;
-                // 合并A1到A5单元格
-                CellRangeAddress mergeRegion = new CellRangeAddress(0, 0, 0, 4);
-                testPlan.AddMergedRegion(mergeRegion);
-
-                //CellRangeAddress mergeRegion2 = new CellRangeAddress(1, 1, 0, 4);
-                //testPlan.AddMergedRegion(mergeRegion2);
-
-                IRow row1 = testPlan.CreateRow(1);
-                row1.CreateCell(0, CellType.String).SetCellValue("NPI機種：");
-                
-            }
 
             // 移除空行
             for (int rowIndex = 0; rowIndex <= testPlan.LastRowNum; rowIndex++)
