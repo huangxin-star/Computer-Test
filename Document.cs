@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
 using static NPOI.HSSF.Util.HSSFColor;
+using static NPOI.SS.UserModel.IFont;
 
 
 namespace Computer_Test
@@ -169,7 +170,7 @@ namespace Computer_Test
             RemoveEmptyColumns(p_machineSheet);
 
             // 在前3行插入空行
-            // InsertEmptyRows(testPlan, 2);
+            InsertEmptyRows(testPlan, 3);
             // 原有的代码逻辑
             for (int i = 0; i <= testPlan.LastRowNum; i++)
             {
@@ -186,10 +187,11 @@ namespace Computer_Test
                     // 设置名称
                     if (cellValue.Contains("NPI"))
                     {
+                        // 后面第一个单元格
                         modelName = GetFieldValue(p_machineSheet, "Model name");
-                        string modelNameNext = GetFieldValue2(p_machineSheet, "Model name");
-
                         modelName2 = GetFieldValue(p_machineSheet, "Model Name");
+                        // 后面第二个单元格
+                        string modelNameNext = GetFieldValue2(p_machineSheet, "Model name");
                         modelNameNext2 = GetFieldValue2(p_machineSheet, "Model Name");
 
                         if ((modelName != null && modelName!=""))
@@ -1208,7 +1210,7 @@ namespace Computer_Test
             // 插入键盘新行
             // 查找并保存特殊格式的单元格
             // 查找并保存特殊格式的单元格及其后面的值
-            // List<Tuple<string, string>> specialCellsAndValues = FindSpecialCellsAndValues(p_machineSheet);
+            //List<Tuple<string, string>> specialCellsAndValues = FindSpecialCellsAndValues(p_machineSheet);
 
             // 将这些值添加到 testPlan 表中
             // AddValuesToTestPlan(testPlan, specialCellsAndValues);
@@ -1348,7 +1350,43 @@ namespace Computer_Test
                 // 如果没有找到匹配的fieldName，返回false
                 return false;
             }
+            // 插入新行
+            void InsertEmptyRows(ISheet sheet, int numberOfRows)
+            {
+                // 向下移动现有行
+                sheet.ShiftRows(0, sheet.LastRowNum, numberOfRows);
 
+                // 在顶部插入空行
+                for (int i = 0; i < numberOfRows; i++)
+                {
+                    IRow newRow = sheet.CreateRow(i);
+                }
+                IRow row0 = testPlan.CreateRow(0);
+                row0.CreateCell(0, CellType.String).SetCellValue("PCBA NPI機種測試test plan");
+
+                // 设置单元格样式
+                ICellStyle style = testPlan.Workbook.CreateCellStyle();
+                style.FillForegroundColor = NPOI.HSSF.Util.HSSFColor.LightGreen.Index;
+                style.Alignment = NPOI.SS.UserModel.HorizontalAlignment.Center;
+                style.VerticalAlignment = VerticalAlignment.Center;
+                style.FillPattern = FillPattern.SolidForeground; // 设置填充模式为实心填充
+                //IFont font = testPlan.Workbook.CreateFont();
+                //font.setFontHeightInPoints((short)16); // 设置字体大小为 16 磅（可根据需要修改）
+                //style.SetFont(font);
+                row0.GetCell(0).CellStyle = style;
+
+                row0.HeightInPoints = 30;
+                // 合并A1到A5单元格
+                CellRangeAddress mergeRegion = new CellRangeAddress(0, 0, 0, 4);
+                testPlan.AddMergedRegion(mergeRegion);
+
+                //CellRangeAddress mergeRegion2 = new CellRangeAddress(1, 1, 0, 4);
+                //testPlan.AddMergedRegion(mergeRegion2);
+
+                IRow row1 = testPlan.CreateRow(1);
+                row1.CreateCell(0, CellType.String).SetCellValue("NPI機種：");
+
+            }
 
 
             bool EqualsField(ISheet sheet, string fieldName)
@@ -1607,25 +1645,25 @@ namespace Computer_Test
                     }
                 }
             }
-            void SetFixedColumnWidth(ISheet sheet, int width)
-            {
-                // 获取最大列数
-                int maxColIndex = 0;
-                for (int rowIndex = 0; rowIndex <= sheet.LastRowNum; rowIndex++)
-                {
-                    IRow row = sheet.GetRow(rowIndex);
-                    if (row != null && row.LastCellNum > maxColIndex)
-                    {
-                        maxColIndex = row.LastCellNum;
-                    }
-                }
+            //void SetFixedColumnWidth(ISheet sheet, int width)
+            //{
+            //    // 获取最大列数
+            //    int maxColIndex = 0;
+            //    for (int rowIndex = 0; rowIndex <= sheet.LastRowNum; rowIndex++)
+            //    {
+            //        IRow row = sheet.GetRow(rowIndex);
+            //        if (row != null && row.LastCellNum > maxColIndex)
+            //        {
+            //            maxColIndex = row.LastCellNum;
+            //        }
+            //    }
 
-                // 设置每列的宽度为固定值
-                for (int colIndex = 0; colIndex < maxColIndex; colIndex++)
-                {
-                    sheet.SetColumnWidth(colIndex, width * 256); // 设置列宽，单位是1/256个字符宽度
-                }
-            }
+            //    // 设置每列的宽度为固定值
+            //    for (int colIndex = 0; colIndex < maxColIndex; colIndex++)
+            //    {
+            //        sheet.SetColumnWidth(colIndex, width * 256); // 设置列宽，单位是1/256个字符宽度
+            //    }
+            //}
 
             List<Tuple<string, string>> FindSpecialCellsAndValues(ISheet sheet)
             {
@@ -1659,22 +1697,22 @@ namespace Computer_Test
                 return foundCellsAndValues;
             }
 
-            void AddValuesToTestPlan(ISheet testPlanSheet, List<Tuple<string, string>> values)
-            {
-                int startRow = testPlanSheet.LastRowNum + 1; // 在最后一行之后添加
+            //void AddValuesToTestPlan(ISheet testPlanSheet, List<Tuple<string, string>> values)
+            //{
+            //    int startRow = testPlanSheet.LastRowNum + 1; // 在最后一行之后添加
 
-                foreach (var valuePair in values)
-                {
-                    IRow row = testPlanSheet.CreateRow(startRow++);
-                    ICell cell1 = row.CreateCell(0);
-                    ICell cell2 = row.CreateCell(1);
-                    cell1.SetCellValue(valuePair.Item1);
-                    cell2.SetCellValue(valuePair.Item2);
-                }
-            }
+            //    foreach (var valuePair in values)
+            //    {
+            //        IRow row = testPlanSheet.CreateRow(startRow++);
+            //        ICell cell1 = row.CreateCell(0);
+            //        ICell cell2 = row.CreateCell(1);
+            //        cell1.SetCellValue(valuePair.Item1);
+            //        cell2.SetCellValue(valuePair.Item2);
+            //    }
+            //}
 
             // 设置每列的宽度为20字符宽度
-            SetFixedColumnWidth(testPlan, 20);
+            // SetFixedColumnWidth(testPlan, 20);
 
             Console.WriteLine(machinePath);
             if(flag == 1)

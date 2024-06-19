@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NPOI.XSSF.UserModel;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -25,6 +26,8 @@ namespace Computer_Test
         string jizhongming = "";
         string startupPath = Application.StartupPath; //System.Diagnostics.Process.Start(Application.StartupPath + "//" + 文件名);
         private Timer timer;
+        XSSFWorkbook WB;
+        
 
         public MainForm()
         {
@@ -33,10 +36,22 @@ namespace Computer_Test
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            initFiles();
             timer = new Timer();
             timer.Interval = 1000; // 设置定时器间隔，单位为毫秒
             timer.Tick += Timer_Tick;
             timer.Start(); // 启动定时器
+        }
+        private void initFiles()
+        {
+            // 获取当前目录下的指定文件路径
+            string currentDirectory = Directory.GetCurrentDirectory();
+            string specificFile = Path.Combine(currentDirectory, "FT映射表.xlsx");
+            mapTextBox.Text = specificFile;
+            mappingFilePath = specificFile;
+            // 获取桌面路径
+            string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            savaPathTextBox.Text = desktopPath;
         }
 
         private void label1_Click(object sender, EventArgs e)
@@ -363,24 +378,31 @@ namespace Computer_Test
 
         private void selectMappingTable_Click(object sender, EventArgs e)
         {
-            mapTextBox.Text = "";
-            bool flag = this.ofd.ShowDialog() == DialogResult.OK;
-            string fullPath = ofd.FileName;
-            if (flag)
-            {
-                mappingTextBoxName = ofd.FileName;
-                mapTextBox.Text = Path.GetFileName(ofd.FileName);
-                if (Path.GetExtension(mappingTextBoxName).Contains("xlsx") || Path.GetExtension(mappingTextBoxName).Contains("xls"))
-                {
-                    mappingFilePath = fullPath;
-                }
-                else
-                {
-                   MessageBox.Show("請選擇正確的xlsx表格格式！");
-                   mapTextBox.Text = "";
-                }
+            // 获取当前目录下的指定文件路径
+            //string currentDirectory = Directory.GetCurrentDirectory();
+            //string specificFile = Path.Combine(currentDirectory, "FT映射表.xlsx");
+            //mapTextBox.Text = specificFile;
+            //mappingFilePath = specificFile;
+            //bool flag = this.ofd.ShowDialog() == DialogResult.OK;
+            //string fullPath = ofd.FileName;
 
-            }
+            //if (flag)
+            //{
+
+
+            //    mappingTextBoxName = specificFile;
+            //    mapTextBox.Text = Path.GetFileName(specificFile);
+
+            //    if (Path.GetExtension(mappingTextBoxName).Contains("xlsx") || Path.GetExtension(mappingTextBoxName).Contains("xls"))
+            //    {
+            //        mappingFilePath = fullPath;
+            //    }
+            //    else
+            //    {
+            //        MessageBox.Show("請選擇正確的 xlsx 表格格式！");
+            //        mapTextBox.Text = "";
+            //    }
+            //}
         }
 
         private void selectModelTable_Click(object sender, EventArgs e)
@@ -405,21 +427,12 @@ namespace Computer_Test
 
 
         }
-        private void savePath_Click(object sender, EventArgs e)
-        {
-            savaPathTextBox.Text = "";
-            FolderSelectDialog dlg = new FolderSelectDialog();
-            if (dlg.ShowDialog(this.Handle))
-            {
-                savaPathTextBox.Text = dlg.FileName;
-                //listBox1.Items.Clear();
-            }
-            else savaPathTextBox.Text = "";
-
-            //if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
-            // textBox3.Text = folderBrowserDialog.SelectedPath;
-            //else textBox3.Text = "";
-        }
+        //private void savePath_Click(object sender, EventArgs e)
+        //{
+        //    // 获取桌面路径
+        //    string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+        //    savaPathTextBox.Text = desktopPath; 
+        //}
         private void transform_click(object sender, EventArgs e)
         {
             if (savaPathTextBox.Text == "" || machineTextBox.Text==""|| mapTextBox.Text=="")
