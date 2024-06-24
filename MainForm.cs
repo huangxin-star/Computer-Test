@@ -46,7 +46,7 @@ namespace Computer_Test
         {
             // 获取当前目录下的指定文件路径
             string currentDirectory = Directory.GetCurrentDirectory();
-            string specificFile = Path.Combine(currentDirectory, "FT映射表.xlsx");
+            string specificFile = Path.Combine(currentDirectory, "Test Plan.xlsx");
             mapTextBox.Text = specificFile;
             mappingFilePath = specificFile;
             // 获取桌面路径
@@ -443,9 +443,6 @@ namespace Computer_Test
             Document document = new Document(this);
             document.createDocuments(mappingFilePath, modelTableTextBoxName, startupPath, savaPathTextBox.Text);
             MessageBox.Show("轉檔成功！！");
-            savaPathTextBox.Text = "";
-            machineTextBox.Text = "";
-            mapTextBox.Text = "";
 
         }
 

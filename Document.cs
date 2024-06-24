@@ -31,11 +31,13 @@ namespace Computer_Test
         {
             XSSFWorkbook WB;
             WB = new XSSFWorkbook(File.Open(startupPath + "\\Test Plan.xlsx", FileMode.Open));//打开报表
-            XSSFSheet mappingsheet = (XSSFSheet)WB.CreateSheet("映射表");//在newexcel里新建映射表
-            WB.SetSheetOrder("映射表", 0);
+            //XSSFSheet mappingsheet = (XSSFSheet)WB.CreateSheet("映射表");//在newexcel里新建映射表
+            //WB.SetSheetOrder("映射表", 0);
             XSSFWorkbook workbookwrite = new XSSFWorkbook(File.Open(mappingPath, FileMode.Open));//打开映射表总表
             // {Name: /xl/worksheets/sheet3.xml - Content Type: application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml}
             XSSFSheet mappingTable = (XSSFSheet)workbookwrite.GetSheet("NB");
+            WB.SetSheetOrder("NB", 0);
+
             XSSFSheet testPlan = (XSSFSheet)WB.GetSheet("TestPlan");
             int flag = 1; //保存文件名
 
@@ -45,7 +47,23 @@ namespace Computer_Test
             int typeA = 0;
             int typeC = 0;
 
+            //for (int i = 0; i <= mappingTable.LastRowNum; i++) // 97
+            //{
+            //    IRow mappingRow = mappingTable.GetRow(i);
+            //    IRow decRow = mappingsheet.CreateRow(i);
+            //    if (mappingRow == null)
+            //        continue;
+            //    for (int j = 0; j < 5; j++)
+            //    {
+            //        if (mappingRow.GetCell(j) == null)
+            //            continue;
+            //        string s = mappingRow.GetCell(j).ToString();
 
+            //        decRow.CreateCell(j, CellType.String).SetCellValue(s);
+            //        // testRow.CreateCell(j, CellType.String).SetCellValue(s);
+
+            //    }
+            //}
 
             XSSFWorkbook machineMapping = new XSSFWorkbook(File.Open(machinePath, FileMode.Open));//打开機種映射表总表
             XSSFSheet p_machineSheet = (XSSFSheet)WB.CreateSheet("機種映射表");//在newexcel里新建映射表
@@ -93,80 +111,7 @@ namespace Computer_Test
 
 
 
-            void RemoveEmptyColumns(ISheet sheet)
-            {
-                int maxColIndex = 0;
-
-                // 先找出最大列索引
-                for (int rowIndex = 0; rowIndex <= sheet.LastRowNum; rowIndex++)
-                {
-                    IRow row = sheet.GetRow(rowIndex);
-                    if (row != null && row.LastCellNum > maxColIndex)
-                    {
-                        maxColIndex = row.LastCellNum;
-                    }
-                }
-
-                // 记录空列索引
-                List<int> emptyColumnIndexes = new List<int>();
-
-                // 先遍历一次，找到所有空列的索引
-                for (int colIndex = 0; colIndex < maxColIndex; colIndex++)
-                {
-                    bool isColumnEmpty = true;
-                    for (int rowIndex = 0; rowIndex <= sheet.LastRowNum; rowIndex++)
-                    {
-                        IRow row = sheet.GetRow(rowIndex);
-                        if (row == null) continue;
-
-                        ICell cell = row.GetCell(colIndex);
-                        if (cell != null && !string.IsNullOrWhiteSpace(cell.ToString()))
-                        {
-                            isColumnEmpty = false;
-                            break;
-                        }
-                    }
-
-                    if (isColumnEmpty)
-                    {
-                        emptyColumnIndexes.Add(colIndex);
-                    }
-                }
-
-                // 反向遍历空列索引并删除空列
-                emptyColumnIndexes.Sort((a, b) => b.CompareTo(a)); // 降序排序
-                foreach (int colIndex in emptyColumnIndexes)
-                {
-                    for (int rowIndex = 0; rowIndex <= sheet.LastRowNum; rowIndex++)
-                    {
-                        IRow row = sheet.GetRow(rowIndex);
-                        if (row == null) continue;
-
-                        ICell cell = row.GetCell(colIndex);
-                        if (cell != null)
-                        {
-                            row.RemoveCell(cell);
-                        }
-
-                        // 左移后面的列
-                        for (int colShift = colIndex; colShift < row.LastCellNum - 1; colShift++)
-                        {
-                            ICell leftCell = row.GetCell(colShift);
-                            ICell rightCell = row.GetCell(colShift + 1);
-
-                            if (rightCell != null)
-                            {
-                                if (leftCell == null)
-                                {
-                                    leftCell = row.CreateCell(colShift);
-                                }
-                                leftCell.SetCellValue(rightCell.ToString());
-                                row.RemoveCell(rightCell);
-                            }
-                        }
-                    }
-                }
-            }
+            // 移除空列
             RemoveEmptyColumns(p_machineSheet);
 
             // 在前3行插入空行
@@ -178,7 +123,7 @@ namespace Computer_Test
                 if (testPlanRow == null) continue;
 
 
-                for (int j = 0; j < 3; j++)
+                for (int j = 1; j < 3; j++)
                 {
                     ICell cell = testPlanRow.GetCell(j);
                     if (cell == null) continue;
@@ -295,8 +240,8 @@ namespace Computer_Test
                         string slotValue = GetFieldValue(p_machineSheet, "Memory Slot");
                         if (ContainsField(p_machineSheet, "Memory Slot"))
                         {
-                            SetCellValue(testPlanRow, j + 1, slotValue);
-
+                            SetCellValue(testPlanRow, j + 1, "Y");
+                            SetCellValue(testPlanRow, j + 3, slotValue);
                         }
                         else
                         {
@@ -308,6 +253,17 @@ namespace Computer_Test
                     }
 
                     // 相机
+                    else if (cellValue.Equals("Camera"))
+                    {
+                        string carmValue = GetFieldValue(p_machineSheet, "Cam Resolution");
+                        if (ContainsField(p_machineSheet, "Cam Resolution"))
+                        {
+                            SetCellValue(testPlanRow, j + 1, "Y");
+                            SetCellValue(testPlanRow, j + 3, carmValue);
+                        }
+                        SetCellValue(testPlanRow, j + 1, "Y");
+
+                    }
                     else if (cellValue.Equals("Rear Cam"))
                     {
                         // string vramValue = GetFieldValue(p_machineSheet, "vRAM");
@@ -869,11 +825,6 @@ namespace Computer_Test
                        
 
                     }
-                    else if (cellValue.Contains("USB Hub Fwcheck"))
-                    {
-                        SetCellValue(testPlanRow, j + 1, "自行確認");
-
-                    }
                     else if (cellValue.Contains("ME check"))
                     {
                         SetCellValue(testPlanRow, j + 1, "Y");
@@ -1175,37 +1126,11 @@ namespace Computer_Test
 
 
             // 移除空行
-            for (int rowIndex = 0; rowIndex <= testPlan.LastRowNum; rowIndex++)
-            {
-                IRow row = testPlan.GetRow(rowIndex);
-                if (row == null) continue;
+            EmptyRows();
+            // 合并
+            MergeCell();
 
-                bool hasEmptyCell = false;
 
-                for (int colIndex = 2; colIndex < row.LastCellNum; colIndex++) // 从第 3 列开始
-                {
-                    ICell cell = row.GetCell(colIndex);
-                    ICell beforeCell = row.GetCell(colIndex - 2);
-                    if (cell == null || string.IsNullOrWhiteSpace(cell.ToString()))
-                    {
-                        hasEmptyCell = true;
-                        break;
-                    }
-                }
-
-                if (hasEmptyCell)
-                {
-                    testPlan.RemoveRow(row);
-
-                    // 将后面的行上移
-                    if (rowIndex < testPlan.LastRowNum)
-                    {
-                        testPlan.ShiftRows(rowIndex + 1, testPlan.LastRowNum, -1);
-                    }
-                    rowIndex--;
-                }
-            }
-            
 
             // 插入键盘新行
             // 查找并保存特殊格式的单元格
@@ -1370,9 +1295,10 @@ namespace Computer_Test
                 style.Alignment = NPOI.SS.UserModel.HorizontalAlignment.Center;
                 style.VerticalAlignment = VerticalAlignment.Center;
                 style.FillPattern = FillPattern.SolidForeground; // 设置填充模式为实心填充
-                //IFont font = testPlan.Workbook.CreateFont();
-                //font.setFontHeightInPoints((short)16); // 设置字体大小为 16 磅（可根据需要修改）
-                //style.SetFont(font);
+                                                                 // 添加设置字体大小的代码
+                IFont font = testPlan.Workbook.CreateFont();
+                font.FontHeightInPoints = 12; // 设置字体大小为 12 磅
+                style.SetFont(font);
                 row0.GetCell(0).CellStyle = style;
 
                 row0.HeightInPoints = 30;
@@ -1384,11 +1310,134 @@ namespace Computer_Test
                 //testPlan.AddMergedRegion(mergeRegion2);
 
                 IRow row1 = testPlan.CreateRow(1);
-                row1.CreateCell(0, CellType.String).SetCellValue("NPI機種：");
+                row1.CreateCell(1, CellType.String).SetCellValue("NPI機種：");
 
             }
+            // 合并删减后的单元格
+            void MergeCell()
+            {
+                // 假设 testPlan 是你的工作表
+                int lastMergeStart = -1; // 用于记录最后一次合并的起始行
+                int lastMergeEnd = -1;   // 用于记录最后一次合并的结束行
 
+                for (int rowIndex = 0; rowIndex <= testPlan.LastRowNum; rowIndex++)
+                {
+                    IRow row = testPlan.GetRow(rowIndex);
+                    if (row == null) continue;
 
+                    // 检查当前行是否在一个合并区域内
+                    bool isMerged = false;
+                    for (int i = 0; i < testPlan.NumMergedRegions; i++)
+                    {
+                        CellRangeAddress mergedRegion = testPlan.GetMergedRegion(i);
+                        if (mergedRegion.IsInRange(rowIndex, 0))
+                        {
+                            isMerged = true;
+                            break;
+                        }
+                    }
+
+                    if (isMerged) continue; // 如果当前行在一个合并区域内，跳过
+
+                    ICell currentCell = row.GetCell(0); // 获取第1列的单元格
+
+                    if (currentCell != null && !string.IsNullOrWhiteSpace(currentCell.ToString()))
+                    {
+                        int mergeStart = rowIndex;
+                        int mergeEnd = rowIndex;
+
+                        // 查找下一个有值的单元格
+                        for (int checkIndex = rowIndex + 1; checkIndex <= testPlan.LastRowNum; checkIndex++)
+                        {
+                            IRow nextRow = testPlan.GetRow(checkIndex);
+                            if (nextRow == null) continue;
+
+                            ICell nextCell = nextRow.GetCell(0);
+
+                            // 检查下一个单元格是否属于已合并区域
+                            bool nextCellIsMerged = false;
+                            for (int i = 0; i < testPlan.NumMergedRegions; i++)
+                            {
+                                CellRangeAddress mergedRegion = testPlan.GetMergedRegion(i);
+                                if (mergedRegion.IsInRange(checkIndex, 0))
+                                {
+                                    nextCellIsMerged = true;
+                                    break;
+                                }
+                            }
+
+                            if (nextCellIsMerged)
+                            {
+                                mergeEnd = checkIndex - 1;
+                                break;
+                            }
+
+                            if (nextCell != null && !string.IsNullOrWhiteSpace(nextCell.ToString()))
+                            {
+                                mergeEnd = checkIndex - 1;
+                                break;
+                            }
+                            if (checkIndex == testPlan.LastRowNum) // 如果检查到最后一行
+                            {
+                                mergeEnd = checkIndex;
+                            }
+                        }
+
+                        // 如果找到的mergeEnd比当前行号大，则进行合并
+                        if (mergeEnd > mergeStart)
+                        {
+                            testPlan.AddMergedRegion(new CellRangeAddress(mergeStart, mergeEnd, 0, 0));
+                            rowIndex = mergeEnd; // 跳过合并过的行
+                            lastMergeStart = -1; // 重置最后合并的起始行
+                            lastMergeEnd = -1;   // 重置最后合并的结束行
+                        }
+                        else
+                        {
+                            lastMergeStart = mergeStart;
+                            lastMergeEnd = mergeEnd;
+                        }
+                    }
+                }
+
+                // 在循环结束后，检查是否有未合并的单元格
+                if (lastMergeStart != -1 && lastMergeEnd > lastMergeStart)
+                {
+                    testPlan.AddMergedRegion(new CellRangeAddress(lastMergeStart, lastMergeEnd, 0, 0));
+                }
+            }
+            void EmptyRows()
+            {
+                for (int rowIndex = 4; rowIndex <= testPlan.LastRowNum; rowIndex++)
+                {
+                    IRow row = testPlan.GetRow(rowIndex);
+                    if (row == null) continue;
+
+                    bool hasEmptyCell = false;
+
+                    for (int colIndex = 2; colIndex < row.LastCellNum; colIndex++) // 从第 3 列开始
+                    {
+                        ICell cell = row.GetCell(colIndex);
+                        if (cell == null || string.IsNullOrWhiteSpace(cell.ToString()))
+                        {
+                            hasEmptyCell = true;
+                            break;
+                        }
+                    }
+
+                    if (hasEmptyCell)
+                    {
+
+                        testPlan.RemoveRow(row);
+
+                        // 将后面的行上移
+                        if (rowIndex < testPlan.LastRowNum)
+                        {
+                            testPlan.ShiftRows(rowIndex + 1, testPlan.LastRowNum, -1);
+                        }
+                        rowIndex--;
+                    }
+                }
+            }
             bool EqualsField(ISheet sheet, string fieldName)
             {
                 for (int k = 0; k <= sheet.LastRowNum; k++)
@@ -1420,7 +1469,80 @@ namespace Computer_Test
                 }
                 return false;
             }
+            void RemoveEmptyColumns(ISheet sheet)
+            {
+                int maxColIndex = 0;
 
+                // 先找出最大列索引
+                for (int rowIndex = 0; rowIndex <= sheet.LastRowNum; rowIndex++)
+                {
+                    IRow row = sheet.GetRow(rowIndex);
+                    if (row != null && row.LastCellNum > maxColIndex)
+                    {
+                        maxColIndex = row.LastCellNum;
+                    }
+                }
+
+                // 记录空列索引
+                List<int> emptyColumnIndexes = new List<int>();
+
+                // 先遍历一次，找到所有空列的索引
+                for (int colIndex = 0; colIndex < maxColIndex; colIndex++)
+                {
+                    bool isColumnEmpty = true;
+                    for (int rowIndex = 0; rowIndex <= sheet.LastRowNum; rowIndex++)
+                    {
+                        IRow row = sheet.GetRow(rowIndex);
+                        if (row == null) continue;
+
+                        ICell cell = row.GetCell(colIndex);
+                        if (cell != null && !string.IsNullOrWhiteSpace(cell.ToString()))
+                        {
+                            isColumnEmpty = false;
+                            break;
+                        }
+                    }
+
+                    if (isColumnEmpty)
+                    {
+                        emptyColumnIndexes.Add(colIndex);
+                    }
+                }
+
+                // 反向遍历空列索引并删除空列
+                emptyColumnIndexes.Sort((a, b) => b.CompareTo(a)); // 降序排序
+                foreach (int colIndex in emptyColumnIndexes)
+                {
+                    for (int rowIndex = 0; rowIndex <= sheet.LastRowNum; rowIndex++)
+                    {
+                        IRow row = sheet.GetRow(rowIndex);
+                        if (row == null) continue;
+
+                        ICell cell = row.GetCell(colIndex);
+                        if (cell != null)
+                        {
+                            row.RemoveCell(cell);
+                        }
+
+                        // 左移后面的列
+                        for (int colShift = colIndex; colShift < row.LastCellNum - 1; colShift++)
+                        {
+                            ICell leftCell = row.GetCell(colShift);
+                            ICell rightCell = row.GetCell(colShift + 1);
+
+                            if (rightCell != null)
+                            {
+                                if (leftCell == null)
+                                {
+                                    leftCell = row.CreateCell(colShift);
+                                }
+                                leftCell.SetCellValue(rightCell.ToString());
+                                row.RemoveCell(rightCell);
+                            }
+                        }
+                    }
+                }
+            }
             string GetFieldValue(ISheet sheet, string fieldName)
             {
                 for (int k = 0; k <= sheet.LastRowNum; k++)
