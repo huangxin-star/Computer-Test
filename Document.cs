@@ -43,6 +43,7 @@ namespace Computer_Test
 
             string modelName = "";
             string modelName2 = "";
+            string modelNameNext = "";
             string modelNameNext2 = "";
             int typeA = 0;
             int typeC = 0;
@@ -86,6 +87,7 @@ namespace Computer_Test
                 {
                     // 如果包含，添加到列表中，并转换为XSSFSheet类型（如果需要）
                     sheetsContainingString.Add(sheet as XSSFSheet);
+                    Console.WriteLine(sheet.SheetName);
                     for (int i = 0; i < sheetsContainingString.Count; i++)
                     {
                         for (int rowNum = 0; rowNum <= sheet.LastRowNum; rowNum++)
@@ -101,13 +103,14 @@ namespace Computer_Test
                                     continue;
                                 string s = row.GetCell(j).ToString();
                                 machineRow.CreateCell(j, CellType.String).SetCellValue(s);
-
                             }
                         }
                     }
-
+                    // 找到第一个满足条件的工作表后停止遍历
+                    break;
                 }
             }
+
 
 
 
@@ -136,7 +139,7 @@ namespace Computer_Test
                         modelName = GetFieldValue(p_machineSheet, "Model name");
                         modelName2 = GetFieldValue(p_machineSheet, "Model Name");
                         // 后面第二个单元格
-                        string modelNameNext = GetFieldValue2(p_machineSheet, "Model name");
+                        modelNameNext = GetFieldValue2(p_machineSheet, "Model name");
                         modelNameNext2 = GetFieldValue2(p_machineSheet, "Model Name");
 
                         if ((modelName != null && modelName!=""))
@@ -203,7 +206,7 @@ namespace Computer_Test
                         string gpu = GetFieldValue(p_machineSheet, "GPU-1");
                         
                         string block = "TDP / VRAM Interface / Capacity";
-                        string blockValue = GetFieldValue2(p_machineSheet, block);
+                        string blockValue = GetFieldValue(p_machineSheet, block);
 
 
 
@@ -220,9 +223,17 @@ namespace Computer_Test
                         }
                         else if (ContainsField(p_machineSheet, block))
                         {
-                            SetCellValue(testPlanRow, j + 1, "Y");
-                            SetCellValue(testPlanRow, j + 3, blockValue);
-                            SetRamValue(testPlan);
+                            if (blockValue.Contains("UMA"))
+                            {
+                                SetCellValue(testPlanRow, j + 1, "");
+                            }
+                            else
+                            {
+                                SetCellValue(testPlanRow, j + 1, "Y");
+                                SetCellValue(testPlanRow, j + 3, blockValue);
+                                SetRamValue(testPlan);
+                            }
+                      
                         }
 
                     }
@@ -332,7 +343,7 @@ namespace Computer_Test
                     {
                       
                         // string vramValue = GetFieldValue(p_machineSheet, "vRAM");
-                        if (EqualsField(p_machineSheet, "BT")||ContainsField(p_machineSheet, "Wi-Fi/BT"))
+                        if (EqualsField(p_machineSheet, "BT")||ContainsField(p_machineSheet, "Wi-Fi/BT")||ContainsField(p_machineSheet, "Bluetooth"))
                         {
                             SetCellValue(testPlanRow, j + 1, "Y");
                            
@@ -342,7 +353,7 @@ namespace Computer_Test
                     else if (cellValue.Equals("Wlan"))
                     {
                         // string vramValue = GetFieldValue(p_machineSheet, "vRAM");
-                        if (EqualsField(p_machineSheet, "WLAN") || ContainsField(p_machineSheet, "Wi-Fi/BT"))
+                        if (EqualsField(p_machineSheet, "WLAN") || ContainsField(p_machineSheet, "Wi-Fi/BT")||ContainsField(p_machineSheet, "Wireless LAN"))
                         {
                             SetCellValue(testPlanRow, j + 1, "Y");
                         }
@@ -844,7 +855,7 @@ namespace Computer_Test
                     else if (cellValue.Contains("Vpro"))
                     {
                         // string vramValue = GetFieldValue(p_machineSheet, "vRAM");
-                        if (ContainsField(p_machineSheet, "vPro"))
+                        if (EqualsField(p_machineSheet, "vPro"))
                         {
                             SetCellValue(testPlanRow, j + 1, "Y");
                         }
@@ -883,7 +894,7 @@ namespace Computer_Test
                     else if (cellValue.Equals("Finger print HW ID"))
                     {
                         // string vramValue = GetFieldValue(p_machineSheet, "vRAM");
-                        if (EqualsField(p_machineSheet, "Form Factor")|| EqualsField(p_machineSheet, "Touch Type"))
+                        if (ContainsField(p_machineSheet, "Fingerprint"))
                         {
                             SetCellValue(testPlanRow, j + 1, "Y");
                         }
@@ -933,21 +944,37 @@ namespace Computer_Test
                                     SetCellValue(testPlanRow, j + 3, typeA.ToString());
                                     SetCellValue(testPlanRow, j + 1, "Y");
                                 }
-                               
-                                if (cellValue1.StartsWith("Type-A"))
-                                {
-                                    ICell nextCell = row.GetCell(d + 2);
-                                    int indexOfX = nextCell.ToString().IndexOf('x');
-                                    if (indexOfX > 0)
-                                    {
-                                        string extractedValue = nextCell.ToString().Substring(0, indexOfX);
-                                        // 在这里对提取出来的内容进行处理
-                                        SetCellValue(testPlanRow, j + 1, "Y");
 
-                                        SetCellValue(testPlanRow, j + 3, extractedValue.ToString());
+                                if (cellValue1.StartsWith("Type-A") || cellValue1.StartsWith("Type-A"))
+                                {
+                                    ICell nextCell1 = row.GetCell(d + 1);
+                                    ICell nextCell2 = row.GetCell(d + 2);
+
+                                    bool hasValue1 = nextCell1 != null && !string.IsNullOrEmpty(nextCell1.ToString()) && nextCell1.ToString() != "NA" && nextCell1.ToString() != "N/A" && nextCell1.ToString() != "na";
+                                    bool hasValue2 = nextCell2 != null && !string.IsNullOrEmpty(nextCell2.ToString()) && nextCell2.ToString() != "NA" && nextCell2.ToString() != "N/A" && nextCell2.ToString() != "na";
+
+                                    if (hasValue1)
+                                    {
+                                        int indexOfX = nextCell1.ToString().IndexOf('x');
+                                        if (indexOfX > 0)
+                                        {
+                                            string extractedValue = nextCell1.ToString().Substring(0, indexOfX);
+                                            SetCellValue(testPlanRow, j + 1, "Y");
+                                            SetCellValue(testPlanRow, j + 3, extractedValue.ToString());
+                                        }
+                                    }
+                                    else if (hasValue2)
+                                    {
+                                        int indexOfX = nextCell2.ToString().IndexOf('x');
+                                        if (indexOfX > 0)
+                                        {
+                                            string extractedValue = nextCell2.ToString().Substring(0, indexOfX);
+                                            SetCellValue(testPlanRow, j + 1, "Y");
+                                            SetCellValue(testPlanRow, j + 3, extractedValue.ToString());
+                                        }
                                     }
                                 }
-                               
+
 
                             }
                         }
@@ -982,16 +1009,32 @@ namespace Computer_Test
 
                                 if (cellValue1.StartsWith("Type-C"))
                                 {
-                                    ICell nextCell = row.GetCell(d + 2);
-                                    int indexOfX = nextCell.ToString().IndexOf('x');
-                                    if (indexOfX > 0)
-                                    {
-                                        string extractedValue = nextCell.ToString().Substring(0, indexOfX);
-                                        // 在这里对提取出来的内容进行处理
-                                        SetCellValue(testPlanRow, j + 1, "Y");
+                                    ICell nextCell1 = row.GetCell(d + 1);
+                                    ICell nextCell2 = row.GetCell(d + 2);
 
-                                        SetCellValue(testPlanRow, j + 3, extractedValue.ToString());
-                                        SetTypecValue(testPlan);
+                                    bool hasValue1 = nextCell1 != null && !string.IsNullOrEmpty(nextCell1.ToString()) && nextCell1.ToString() != "NA" && nextCell1.ToString() != "N/A" && nextCell1.ToString() != "na";
+                                    bool hasValue2 = nextCell2 != null && !string.IsNullOrEmpty(nextCell2.ToString()) && nextCell2.ToString() != "NA" && nextCell2.ToString() != "N/A" && nextCell2.ToString() != "na";
+
+
+                                    if (hasValue1)
+                                    {
+                                        int indexOfX = nextCell1.ToString().IndexOf('x');
+                                        if (indexOfX > 0)
+                                        {
+                                            string extractedValue = nextCell1.ToString().Substring(0, indexOfX);
+                                            SetCellValue(testPlanRow, j + 1, "Y");
+                                            SetCellValue(testPlanRow, j + 3, extractedValue.ToString());
+                                        }
+                                    }
+                                    else if (hasValue2)
+                                    {
+                                        int indexOfX = nextCell2.ToString().IndexOf('x');
+                                        if (indexOfX > 0)
+                                        {
+                                            string extractedValue = nextCell2.ToString().Substring(0, indexOfX);
+                                            SetCellValue(testPlanRow, j + 1, "Y");
+                                            SetCellValue(testPlanRow, j + 3, extractedValue.ToString());
+                                        }
                                     }
                                 }
 
@@ -1127,7 +1170,7 @@ namespace Computer_Test
 
             // 移除空行
             EmptyRows();
-            // 合并
+            // 合并   
             MergeCell();
 
 
@@ -1449,10 +1492,12 @@ namespace Computer_Test
                     {
                         if (row.GetCell(d)?.ToString().Equals(fieldName) == true)
                         {
+                            // 获取当前单元格的下一个单元格
                             ICell nextCell = row.GetCell(d + 1);
+                            ICell nextCell2 = row.GetCell((d + 2));
                             if (nextCell == null ||
                                string.IsNullOrWhiteSpace(nextCell.ToString()) ||
-                               nextCell.ToString().Equals("N/A") || nextCell.ToString().Equals("na") || nextCell.ToString().Equals("NA"))
+                               nextCell.ToString().Equals("N/A") || nextCell.ToString().Equals("na") || nextCell.ToString().Equals("NA")|| nextCell.ToString().Equals(""))
                             {
                                 return false;
                             }
@@ -1767,6 +1812,18 @@ namespace Computer_Test
                     }
                 }
             }
+            bool IsCellEmptyOrInvalid(ICell cell)
+            {
+                if (cell == null)
+                {
+                    return true;
+                }
+
+                string cellValue = cell.ToString();
+
+                return string.IsNullOrEmpty(cellValue) ||
+                       cellValue == "NA" || cellValue == "N/A" || cellValue == "na";
+            }
             //void SetFixedColumnWidth(ISheet sheet, int width)
             //{
             //    // 获取最大列数
@@ -1847,11 +1904,14 @@ namespace Computer_Test
             }
             if (flag == 0)
             {
-                Stream stream = new FileStream(savaPath + "\\" + modelNameNext2 + " " + "TestPlan.xlsx", FileMode.OpenOrCreate);
-                WB.Write(stream);
-                stream.Close();
-                WB.Close();
-                workbookwrite.Close();
+
+                    Stream stream = new FileStream(savaPath + "\\" + modelNameNext2 + " " + "TestPlan.xlsx", FileMode.OpenOrCreate);
+                    WB.Write(stream);
+                    stream.Close();
+                
+               
+               
+
             }
         }
            
