@@ -83,7 +83,8 @@ namespace Computer_Test
             foreach (ISheet sheet in machineMapping)
             {
                 // 检查工作表名称是否包含特定字符串
-                if (sheet.SheetName.Contains(searchString1) || sheet.SheetName.Contains(searchString2) || sheet.SheetName.Contains(searchString3))
+
+                if (sheet.SheetName.Contains(searchString1) || sheet.SheetName.Contains(searchString2) || sheet.SheetName.Contains(searchString3)||sheet.SheetName.StartsWith("1A"))
                 {
                     // 如果包含，添加到列表中，并转换为XSSFSheet类型（如果需要）
                     sheetsContainingString.Add(sheet as XSSFSheet);
@@ -183,13 +184,9 @@ namespace Computer_Test
 
                     else if (cellValue.Contains("Processor Type"))
                     {
-                        // string processorValue = GetFieldValue(p_machineSheet, "Processor Type");
-                        if (ContainsField(p_machineSheet, "Processor Type"))
-                        {
-                            SetCellValue(testPlanRow, j + 1, "Y");
-                            SetProcessorPlatValue(testPlan);
-                        }
-                       
+                        // string processorValue = GetFieldValue2(p_machineSheet, "Processor"); 
+                           SetCellValue(testPlanRow, j + 1, "Y");
+                           SetProcessorPlatValue(testPlan);
                     }
                     else if (cellValue.Equals("PCH型號"))
                     {
@@ -248,11 +245,18 @@ namespace Computer_Test
                     }
                     else if (cellValue.Equals("Memory Slot"))
                     {
+                        // tablet
                         string slotValue = GetFieldValue(p_machineSheet, "Memory Slot");
+                        string tabletSlotValue = GetFieldValue(p_machineSheet, "Slot");
+
                         if (ContainsField(p_machineSheet, "Memory Slot"))
                         {
                             SetCellValue(testPlanRow, j + 1, "Y");
                             SetCellValue(testPlanRow, j + 3, slotValue);
+                        }else if (EqualsField(p_machineSheet,"Slot"))
+                        {
+                            SetCellValue(testPlanRow, j + 1, "Y");
+                            SetCellValue(testPlanRow, j + 3, tabletSlotValue);
                         }
                         else
                         {
@@ -278,7 +282,7 @@ namespace Computer_Test
                     else if (cellValue.Equals("Rear Cam"))
                     {
                         // string vramValue = GetFieldValue(p_machineSheet, "vRAM");
-                        if (ContainsField(p_machineSheet, "Rear  Cam") || ContainsField(p_machineSheet, "Camera (Rear)"))
+                        if (ContainsField(p_machineSheet, "Rear  Cam") || ContainsField(p_machineSheet, "Camera (Rear)") || ContainsField(p_machineSheet, "Camera (Rear)"))
                         {
                             SetCellValue(testPlanRow, j + 1, "Y");
                         }
@@ -353,7 +357,7 @@ namespace Computer_Test
                     else if (cellValue.Equals("Wlan"))
                     {
                         // string vramValue = GetFieldValue(p_machineSheet, "vRAM");
-                        if (EqualsField(p_machineSheet, "WLAN") || ContainsField(p_machineSheet, "Wi-Fi/BT")||ContainsField(p_machineSheet, "Wireless LAN"))
+                        if (EqualsField(p_machineSheet, "WLAN") || ContainsField(p_machineSheet, "Wi-Fi/BT")||ContainsField(p_machineSheet, "Wireless LAN")||ContainsField(p_machineSheet, "Wireless"))
                         {
                             SetCellValue(testPlanRow, j + 1, "Y");
                         }
@@ -863,7 +867,7 @@ namespace Computer_Test
                     }
                     else if (cellValue.Contains("lan loop"))
                     {
-                        if (EqualsField(p_machineSheet, "LAN"))
+                        if (EqualsField(p_machineSheet, "LAN") || EqualsField(p_machineSheet, "LAN Port"))
                         {
                             SetCellValue(testPlanRow, j + 1, "Y");
                             SetLANValue(testPlan);
@@ -944,7 +948,21 @@ namespace Computer_Test
                                     SetCellValue(testPlanRow, j + 3, typeA.ToString());
                                     SetCellValue(testPlanRow, j + 1, "Y");
                                 }
-
+                                if (cellValue1.Contains("(Type A )"))
+                                {
+                                    ICell nextCell1 = row.GetCell(d + 1);
+                                    bool hasValue1 = nextCell1 != null && !string.IsNullOrEmpty(nextCell1.ToString()) && nextCell1.ToString() != "NA" && nextCell1.ToString() != "N/A" && nextCell1.ToString() != "na";
+                                    if (hasValue1)
+                                    {
+                                        int indexOfX = nextCell1.ToString().IndexOf('x');
+                                        if (indexOfX >= 0)
+                                        {
+                                            string extractedValue = nextCell1.ToString().Substring(1, indexOfX+1);
+                                            SetCellValue(testPlanRow, j + 1, "Y");
+                                            SetCellValue(testPlanRow, j + 3, extractedValue.ToString());
+                                        }
+                                    }
+                                }
                                 if (cellValue1.StartsWith("Type-A") || cellValue1.StartsWith("Type-A"))
                                 {
                                     ICell nextCell1 = row.GetCell(d + 1);
@@ -1005,6 +1023,21 @@ namespace Computer_Test
                                     SetCellValue(testPlanRow, j + 3, typeC.ToString());
                                     SetCellValue(testPlanRow, j + 1, "Y");
                                     SetTypecValue(testPlan);
+                                }
+                                if (cellValue1.Contains("(Type C )"))
+                                {
+                                    ICell nextCell1 = row.GetCell(d + 1);
+                                    bool hasValue1 = nextCell1 != null && !string.IsNullOrEmpty(nextCell1.ToString()) && nextCell1.ToString() != "NA" && nextCell1.ToString() != "N/A" && nextCell1.ToString() != "na";
+                                    if (hasValue1)
+                                    {
+                                        int indexOfX = nextCell1.ToString().IndexOf('x');
+                                        if (indexOfX >= 0)
+                                        {
+                                            string extractedValue = nextCell1.ToString().Substring(1, indexOfX + 1);
+                                            SetCellValue(testPlanRow, j + 1, "Y");
+                                            SetCellValue(testPlanRow, j + 3, extractedValue.ToString());
+                                        }
+                                    }
                                 }
 
                                 if (cellValue1.StartsWith("Type-C"))
@@ -1105,7 +1138,7 @@ namespace Computer_Test
                     }
                     else if (cellValue.Equals("SIM card"))
                     {
-                        if (EqualsField(p_machineSheet, "SIM"))
+                        if (EqualsField(p_machineSheet, "SIM")||ContainsField(p_machineSheet, "SIM card"))
                         {
                             SetCellValue(testPlanRow, j + 1, "Y");
                         }
@@ -1113,7 +1146,7 @@ namespace Computer_Test
                     }
                     else if (cellValue.Equals("Card Reader"))
                     {
-                        if (EqualsField(p_machineSheet, "Card Reader"))
+                        if (ContainsField(p_machineSheet, "Card Reader"))
                         {
                             SetCellValue(testPlanRow, j + 1, "Y");
                         }
@@ -1147,7 +1180,7 @@ namespace Computer_Test
                     }
                     else if (cellValue.Equals("GPS"))
                     {
-                        if (EqualsField(p_machineSheet, "GPS"))
+                        if (EqualsField(p_machineSheet, "GPS")||ContainsField(p_machineSheet, "GPS (Optional)"))
                         {
                             SetCellValue(testPlanRow, j + 1, "Y");
                         }
@@ -1904,14 +1937,9 @@ namespace Computer_Test
             }
             if (flag == 0)
             {
-
-                    Stream stream = new FileStream(savaPath + "\\" + modelNameNext2 + " " + "TestPlan.xlsx", FileMode.OpenOrCreate);
-                    WB.Write(stream);
-                    stream.Close();
-                
-               
-               
-
+                Stream stream = new FileStream(savaPath + "\\" + modelNameNext2 + " " + "TestPlan.xlsx", FileMode.OpenOrCreate);
+                WB.Write(stream);
+                stream.Close();
             }
         }
            
