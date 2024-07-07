@@ -17,7 +17,7 @@ namespace Computer_Test
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new MainForm());
-            Console.WriteLine("test");
+            Console.WriteLine("test1");
         }
     }
 }
